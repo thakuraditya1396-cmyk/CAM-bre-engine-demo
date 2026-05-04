@@ -1,120 +1,183 @@
 import streamlit as st
 
-# ---------------- STATE ----------------
-if "responses" not in st.session_state:
-    st.session_state.responses = {}
+st.set_page_config(page_title="BRE Demo", layout="centered")
 
-if "current_q" not in st.session_state:
-    st.session_state.current_q = "Q1"
+# -----------------------------
+# Initialize session
+# -----------------------------
+if "step" not in st.session_state:
+    st.session_state.step = 1
+    st.session_state.data = {}
+    st.session_state.income_sources = []
 
-# ---------------- QUESTION CONFIG ----------------
-questions = {
+st.title("📊 Credit Underwriting BRE Demo")
 
-    "Q1": {
-        "text": "Occupation Type",
-        "type": "select",
-        "options": ["Salaried", "SENP", "SEP"],
-        "next": {
-            "Salaried": "Q2",
-            "SENP": "Q4",
-            "SEP": "Q5"
-        }
-    },
+# -----------------------------
+# STEP 1: Basic Info
+# -----------------------------
+if st.session_state.step == 1:
+    st.header("Step 1: Basic Information")
 
-    "Q2": {
-        "text": "Company Name",
-        "type": "text",
-        "next": "Q3"
-    },
+    name = st.text_input("Full Name")
+    age = st.number_input("Age", min_value=18, max_value=80)
 
-    "Q3": {
-        "text": "Designation",
-        "type": "text",
-        "next": "Q6"
-    },
+    if st.button("Next"):
+        st.session_state.data["name"] = name
+        st.session_state.data["age"] = age
+        st.session_state.step = 2
 
-    "Q4": {
-        "text": "Select Income Sources",
-        "type": "multi",
-        "options": ["Dairy", "Food Stall", "Poultry"],
-        "next": "Q6"
-    },
+# -----------------------------
+# STEP 2: Occupation
+# -----------------------------
+elif st.session_state.step == 2:
+    st.header("Step 2: Occupation Type")
 
-    "Q5": {
-        "text": "Profession",
-        "type": "select",
-        "options": ["Doctor", "Lawyer", "CA"],
-        "next": "Q6"
-    },
+    occupation = st.selectbox("Select Occupation", ["Salaried", "SENP", "SEP"])
 
-    "Q6": {
-        "text": "Full Name",
-        "type": "text",
-        "next": "Q7"
-    },
+    if st.button("Next"):
+        st.session_state.data["occupation"] = occupation
+        st.session_state.step = 3
 
-    "Q7": {
-        "text": "Age",
-        "type": "number",
-        "next": "Q8"
-    },
+# -----------------------------
+# STEP 3: Income Handling
+# -----------------------------
+elif st.session_state.step == 3:
 
-    "Q8": {
-        "text": "Residence Type",
-        "type": "select",
-        "options": ["Owned", "Rented", "Parental"],
-        "next": {
-            "Owned": "END",
-            "Rented": "Q9",
-            "Parental": "Q10"
-        }
-    },
+    occupation = st.session_state.data["occupation"]
 
-    "Q9": {
-        "text": "Monthly Rent",
-        "type": "number",
-        "next": "END"
-    },
+    if occupation == "Salaried":
+        st.header("Salaried Details")
 
-    "Q10": {
-        "text": "Property Owner Name",
-        "type": "text",
-        "next": "END"
-    }
-}
+        company = st.text_input("Company Name")
+        salary = st.number_input("Monthly Salary")
 
-# ---------------- RENDER ----------------
-q = questions[st.session_state.current_q]
+        if st.button("Next"):
+            st.session_state.data["company"] = company
+            st.session_state.data["salary"] = salary
+            st.session_state.step = 5
 
-st.title("BRE Demo Engine")
+    elif occupation == "SENP":
+        st.header("SENP - Income Sources")
 
-answer = None
+        options = ["Dairy", "Food Stall", "Poultry", "Other"]
+        selected = st.multiselect("Select Income Sources", options)
 
-if q["type"] == "text":
-    answer = st.text_input(q["text"])
+        if st.button("Next"):
+            st.session_state.income_sources = selected
+            st.session_state.current_source = 0
+            st.session_state.step = 4
 
-elif q["type"] == "number":
-    answer = st.number_input(q["text"])
+    elif occupation == "SEP":
+        st.header("Professional Details")
 
-elif q["type"] == "select":
-    answer = st.selectbox(q["text"], q["options"])
+        prof = st.selectbox("Profession", ["Doctor", "Lawyer", "CA", "Other"])
+        income = st.number_input("Monthly Income")
 
-elif q["type"] == "multi":
-    answer = st.multiselect(q["text"], q["options"])
+        if st.button("Next"):
+            st.session_state.data["profession"] = prof
+            st.session_state.data["income"] = income
+            st.session_state.step = 5
 
-# ---------------- NEXT BUTTON ----------------
-if st.button("Next"):
+# -----------------------------
+# STEP 4: LOOP (SENP Income)
+# -----------------------------
+elif st.session_state.step == 4:
 
-    st.session_state.responses[st.session_state.current_q] = answer
+    sources = st.session_state.income_sources
+    index = st.session_state.current_source
 
-    nxt = q["next"]
+    if index < len(sources):
+        source = sources[index]
 
-    if isinstance(nxt, dict):
-        st.session_state.current_q = nxt.get(answer, "END")
+        st.header(f"Income Details - {source}")
+
+        revenue = st.number_input(f"{source} Monthly Revenue")
+        expense = st.number_input(f"{source} Monthly Expense")
+
+        if st.button("Save & Next"):
+            if "senp_income" not in st.session_state.data:
+                st.session_state.data["senp_income"] = []
+
+            st.session_state.data["senp_income"].append({
+                "source": source,
+                "revenue": revenue,
+                "expense": expense
+            })
+
+            st.session_state.current_source += 1
+            st.experimental_rerun()
+
     else:
-        st.session_state.current_q = nxt
+        st.session_state.step = 5
 
-# ---------------- END ----------------
-if st.session_state.current_q == "END":
-    st.success("Completed")
-    st.write(st.session_state.responses)
+# -----------------------------
+# STEP 5: Household Expense
+# -----------------------------
+elif st.session_state.step == 5:
+
+    st.header("Household Details")
+
+    expense = st.number_input("Monthly Household Expense")
+
+    if st.button("Next"):
+        st.session_state.data["household_expense"] = expense
+        st.session_state.step = 6
+
+# -----------------------------
+# STEP 6: Loan Details
+# -----------------------------
+elif st.session_state.step == 6:
+
+    st.header("Loan Requirement")
+
+    loan = st.number_input("Loan Amount Required")
+    emi = st.number_input("Comfortable EMI")
+
+    if st.button("Calculate"):
+        st.session_state.data["loan"] = loan
+        st.session_state.data["emi"] = emi
+        st.session_state.step = 7
+
+# -----------------------------
+# STEP 7: Summary + Decision
+# -----------------------------
+elif st.session_state.step == 7:
+
+    st.header("📊 Summary & Decision")
+
+    data = st.session_state.data
+
+    total_income = 0
+
+    if data["occupation"] == "Salaried":
+        total_income = data.get("salary", 0)
+
+    elif data["occupation"] == "SEP":
+        total_income = data.get("income", 0)
+
+    elif data["occupation"] == "SENP":
+        for item in data.get("senp_income", []):
+            total_income += (item["revenue"] - item["expense"])
+
+    total_expense = data.get("household_expense", 0)
+    emi = data.get("emi", 0)
+
+    foir = (emi / total_income) * 100 if total_income > 0 else 0
+
+    st.write("### Applicant Data")
+    st.json(data)
+
+    st.write("### Calculations")
+    st.write(f"Total Income: ₹{total_income}")
+    st.write(f"FOIR: {round(foir,2)}%")
+
+    # BRE Decision Rule
+    if foir < 50:
+        st.success("✅ Eligible")
+    elif foir < 65:
+        st.warning("⚠ Refer")
+    else:
+        st.error("❌ Not Eligible")
+
+    if st.button("Restart"):
+        st.session_state.clear()
