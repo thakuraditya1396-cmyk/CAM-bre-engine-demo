@@ -1,0 +1,287 @@
+{
+  "meta": {
+    "version": "2.0",
+    "product": "SENP Credit Underwriting BRE",
+    "last_updated": "2025-01"
+  },
+
+  "modules": [
+    "KYC", "Profiling", "Household", "Business",
+    "Income", "Expense", "Liability", "Banking",
+    "Risk", "Collateral", "Loan", "Derived", "Decision"
+  ],
+
+  "questions": [
+    { "qid": "Q1",  "module": "KYC",       "sub": "Basic",     "label": "Full Name",                     "type": "text",          "options": [],                           "loop": false, "depends_on": null,                  "output_tag": "name" },
+    { "qid": "Q2",  "module": "KYC",       "sub": "Basic",     "label": "Age",                           "type": "number",        "options": [],                           "loop": false, "depends_on": null,                  "output_tag": "age" },
+    { "qid": "Q3",  "module": "KYC",       "sub": "Basic",     "label": "Gender",                        "type": "single_select", "options": ["Male","Female","Other"],     "loop": false, "depends_on": null,                  "output_tag": "gender" },
+    { "qid": "Q4",  "module": "Profiling", "sub": "Occupation","label": "Occupation Type",               "type": "single_select", "options": ["Salaried","SENP","SEP"],    "loop": false, "depends_on": null,                  "output_tag": "occupation" },
+    { "qid": "Q5",  "module": "Profiling", "sub": "Occupation","label": "Sub Occupation / Designation",  "type": "text",          "options": [],                           "loop": false, "depends_on": {"qid":"Q4","value":"*"},"output_tag": "sub_occ" },
+
+    { "qid": "Q6",  "module": "Household", "sub": "Family",    "label": "Number of Family Members",      "type": "number",        "options": [],                           "loop": false, "depends_on": null,                  "output_tag": "family_count" },
+    { "qid": "Q7",  "module": "Household", "sub": "Family",    "label": "Member Name",                   "type": "text",          "options": [],                           "loop": true,  "loop_driver": "family_count",       "output_tag": "fam_name" },
+    { "qid": "Q8",  "module": "Household", "sub": "Family",    "label": "Member Age",                    "type": "number",        "options": [],                           "loop": true,  "loop_driver": "family_count",       "output_tag": "fam_age" },
+    { "qid": "Q9",  "module": "Household", "sub": "Family",    "label": "Member Occupation",             "type": "single_select", "options": ["Working","Dependent"],      "loop": true,  "loop_driver": "family_count",       "output_tag": "fam_occ" },
+    { "qid": "Q10", "module": "Household", "sub": "Family",    "label": "Member Monthly Income",         "type": "number",        "options": [],                           "loop": true,  "loop_driver": "family_count",       "depends_on": {"qid":"Q9","value":"Working"}, "output_tag": "fam_income" },
+
+    { "qid": "Q11", "module": "KYC",       "sub": "Residence", "label": "Residence Type",                "type": "single_select", "options": ["Owned","Rented","Parental"],"loop": false, "depends_on": null,                  "output_tag": "res_type" },
+    { "qid": "Q12", "module": "KYC",       "sub": "Residence", "label": "Monthly Rent Paid",             "type": "number",        "options": [],                           "loop": false, "depends_on": {"qid":"Q11","value":"Rented"}, "output_tag": "rent" },
+
+    { "qid": "Q14", "module": "Business",  "sub": "General",   "label": "Business Type / Name",          "type": "text",          "options": [],                           "loop": false, "depends_on": {"qid":"Q4","value":"SENP"}, "output_tag": "biz_type" },
+    { "qid": "Q15", "module": "Business",  "sub": "General",   "label": "Business Vintage (years)",      "type": "number",        "options": [],                           "loop": false, "depends_on": {"qid":"Q4","value":"SENP"}, "output_tag": "vintage" },
+    { "qid": "Q16", "module": "Business",  "sub": "General",   "label": "Business Location Type",        "type": "single_select", "options": ["Permanent","Temporary"],    "loop": false, "depends_on": {"qid":"Q4","value":"SENP"}, "output_tag": "location_type" },
+
+    { "qid": "Q17", "module": "Income",    "sub": "Revenue",   "label": "Income Sources (select all)",   "type": "multi_select",  "options": ["Dairy","Tea Stall","Poultry","Other"], "loop": false, "depends_on": {"qid":"Q4","value":"SENP"}, "output_tag": "income_sources" },
+
+    { "qid": "Q18", "module": "Income",    "sub": "Revenue",   "label": "Daily Quantity Sold",           "type": "number",        "options": [],                           "loop": true,  "loop_driver": "income_sources",     "output_tag": "qty" },
+    { "qid": "Q19", "module": "Income",    "sub": "Revenue",   "label": "Selling Price per Unit (₹)",    "type": "number",        "options": [],                           "loop": true,  "loop_driver": "income_sources",     "output_tag": "price" },
+    { "qid": "Q20", "module": "Income",    "sub": "Revenue",   "label": "Monthly Revenue (₹)",           "type": "number",        "options": [],                           "loop": true,  "loop_driver": "income_sources",     "output_tag": "revenue" },
+    { "qid": "Q42", "module": "Income",    "sub": "Revenue",   "label": "Peak Season Multiplier (e.g. 1.2)", "type": "number",    "options": [],                           "loop": true,  "loop_driver": "income_sources",     "output_tag": "season_peak" },
+    { "qid": "Q43", "module": "Income",    "sub": "Revenue",   "label": "Lean Season Multiplier (e.g. 0.8)", "type": "number",    "options": [],                           "loop": true,  "loop_driver": "income_sources",     "output_tag": "season_lean" },
+
+    { "qid": "Q21", "module": "Expense",   "sub": "Business",  "label": "Raw Material Cost (₹/month)",   "type": "number",        "options": [],                           "loop": false, "depends_on": {"qid":"Q4","value":"SENP"}, "output_tag": "raw_cost" },
+    { "qid": "Q22", "module": "Expense",   "sub": "Business",  "label": "Labor / Helper Cost (₹/month)", "type": "number",        "options": [],                           "loop": false, "depends_on": {"qid":"Q4","value":"SENP"}, "output_tag": "labor" },
+    { "qid": "Q23", "module": "Expense",   "sub": "Business",  "label": "Electricity Cost (₹/month)",    "type": "number",        "options": [],                           "loop": false, "depends_on": {"qid":"Q4","value":"SENP"}, "output_tag": "electricity" },
+    { "qid": "Q24", "module": "Expense",   "sub": "Business",  "label": "Business Rent / Stall Rent (₹/month)", "type": "number", "options": [],                           "loop": false, "depends_on": {"qid":"Q4","value":"SENP"}, "output_tag": "biz_rent" },
+
+    { "qid": "Q25", "module": "Expense",   "sub": "Household", "label": "Monthly Household Expense (₹)", "type": "number",        "options": [],                           "loop": false, "depends_on": null,                  "output_tag": "hh_exp" },
+
+    { "qid": "Q26", "module": "Liability", "sub": "Loans",     "label": "Number of Existing Loans",      "type": "number",        "options": [],                           "loop": false, "depends_on": null,                  "output_tag": "loan_count" },
+    { "qid": "Q27", "module": "Liability", "sub": "Loans",     "label": "Loan Type",                     "type": "text",          "options": [],                           "loop": true,  "loop_driver": "loan_count",         "output_tag": "loan_type" },
+    { "qid": "Q28", "module": "Liability", "sub": "Loans",     "label": "Outstanding Amount (₹)",        "type": "number",        "options": [],                           "loop": true,  "loop_driver": "loan_count",         "output_tag": "loan_outstanding" },
+    { "qid": "Q29", "module": "Liability", "sub": "Loans",     "label": "Current EMI (₹/month)",         "type": "number",        "options": [],                           "loop": true,  "loop_driver": "loan_count",         "output_tag": "loan_emi" },
+
+    { "qid": "Q30", "module": "Banking",   "sub": "Details",   "label": "Number of Bank Accounts",       "type": "number",        "options": [],                           "loop": false, "depends_on": null,                  "output_tag": "acct_count" },
+    { "qid": "Q31", "module": "Banking",   "sub": "Details",   "label": "Average Monthly Balance (₹)",   "type": "number",        "options": [],                           "loop": false, "depends_on": null,                  "output_tag": "amb" },
+
+    { "qid": "Q32", "module": "Loan",      "sub": "Requirement","label": "Loan Amount Required (₹)",     "type": "number",        "options": [],                           "loop": false, "depends_on": null,                  "output_tag": "loan_amt_req" },
+    { "qid": "Q33", "module": "Loan",      "sub": "Requirement","label": "Comfortable EMI (₹/month)",    "type": "number",        "options": [],                           "loop": false, "depends_on": null,                  "output_tag": "emi_pref" },
+
+    { "qid": "Q34", "module": "Risk",      "sub": "General",   "label": "Any Chronic Illness?",          "type": "boolean",       "options": ["Yes","No"],                 "loop": false, "depends_on": null,                  "output_tag": "illness" },
+    { "qid": "Q35", "module": "Risk",      "sub": "General",   "label": "Business Stability",            "type": "single_select", "options": ["High","Medium","Low"],      "loop": false, "depends_on": {"qid":"Q4","value":"SENP"}, "output_tag": "stability" },
+    { "qid": "Q36", "module": "Risk",      "sub": "General",   "label": "Any Informal Borrowing?",       "type": "boolean",       "options": ["Yes","No"],                 "loop": false, "depends_on": null,                  "output_tag": "informal_loans" },
+    { "qid": "Q68", "module": "Risk",      "sub": "Stability", "label": "Any Business Disruption in Last Year?", "type": "boolean","options": ["Yes","No"],               "loop": false, "depends_on": {"qid":"Q4","value":"SENP"}, "output_tag": "disruption" },
+    { "qid": "Q69", "module": "Risk",      "sub": "Stability", "label": "Alternate Income Source Available?", "type": "boolean",  "options": ["Yes","No"],                "loop": false, "depends_on": null,                  "output_tag": "alt_income" },
+
+    { "qid": "Q71", "module": "Collateral","sub": "Property",  "label": "Property Ownership",            "type": "single_select", "options": ["Self","Family","None"],     "loop": false, "depends_on": null,                  "output_tag": "prop_type" },
+    { "qid": "Q72", "module": "Collateral","sub": "Property",  "label": "Estimated Property Value (₹)",  "type": "number",        "options": [],                           "loop": false, "depends_on": {"qid":"Q71","value":"Self"}, "output_tag": "prop_value" }
+  ],
+
+  "income_computation": {
+    "note": "CAM = Credit Assessment Memo income. This is the haircut-adjusted, annualized net income used for underwriting.",
+
+    "SENP": {
+      "step1_gross_revenue": "sum of monthly_revenue across all income_sources",
+      "step2_business_expense": "raw_cost + labor + electricity + biz_rent",
+      "step3_net_business_income": "step1 - step2",
+      "step4_seasonal_adjustment": "net_business_income * (0.6 * season_lean + 0.4 * season_peak)",
+      "step5_cam_haircut": 0.85,
+      "step6_cam_income": "step4 * cam_haircut",
+      "note": "If no seasonal multipliers given, use 1.0 for both (no adjustment). Haircut = 0.85 per NBFC norms."
+    },
+
+    "Salaried": {
+      "net_income": "monthly_salary",
+      "cam_income": "net_income * 1.0 (no haircut for confirmed salary)"
+    },
+
+    "SEP": {
+      "net_income": "monthly_income_declared",
+      "cam_income": "net_income * 0.90",
+      "note": "SEP professionals get 90% credit since income is declared but not employer-verified."
+    },
+
+    "family_contribution": {
+      "rule": "Working family members' income is counted at 50% if co-applicant, else not counted for FOIR.",
+      "note": "Toggle co_applicant flag per member."
+    }
+  },
+
+  "cam_template": {
+    "A_gross_revenue":       "Total revenue across all SENP sources",
+    "B_business_expenses":   "raw_cost + labor + electricity + biz_rent",
+    "C_net_business_income": "A - B",
+    "D_seasonal_adj_income": "C * seasonal_factor",
+    "E_cam_income":          "D * haircut (0.85)",
+    "F_family_income":       "sum of working co-applicant incomes",
+    "G_total_cam_income":    "E + F",
+    "H_existing_emis":       "sum of all loan_emi",
+    "I_household_expense":   "hh_exp",
+    "J_total_obligations":   "H + I",
+    "K_proposed_emi":        "emi_pref",
+    "L_total_outflow":       "J + K",
+    "M_surplus":             "G - L",
+    "N_foir":                "K / G * 100",
+    "O_adjusted_foir":       "N + (dependents * 2) + (illness_penalty)"
+  },
+
+  "rules": [
+    {
+      "id": "R01",
+      "name": "Age Gate",
+      "description": "Applicant must be between 21 and 65 years",
+      "priority": 1,
+      "condition": "age < 21 or age > 65",
+      "action": "reject",
+      "reason": "Age outside permissible range (21-65 years)"
+    },
+    {
+      "id": "R02",
+      "name": "Business Vintage",
+      "description": "SENP applicant must have at least 2 years of business vintage",
+      "priority": 2,
+      "condition": "occupation == 'SENP' and vintage < 2",
+      "action": "reject",
+      "reason": "Business vintage less than 2 years"
+    },
+    {
+      "id": "R03",
+      "name": "Minimum CAM Income",
+      "description": "CAM income must be at least ₹10,000/month",
+      "priority": 3,
+      "condition": "cam_income < 10000",
+      "action": "reject",
+      "reason": "CAM income below minimum threshold of ₹10,000"
+    },
+    {
+      "id": "R04",
+      "name": "FOIR Green Zone",
+      "description": "FOIR below 40% → clean eligible",
+      "priority": 4,
+      "condition": "adjusted_foir < 40",
+      "action": "eligible",
+      "reason": "FOIR within comfortable range"
+    },
+    {
+      "id": "R05",
+      "name": "FOIR Amber Zone",
+      "description": "FOIR between 40–55% → refer to credit manager",
+      "priority": 5,
+      "condition": "adjusted_foir >= 40 and adjusted_foir < 55",
+      "action": "refer",
+      "reason": "FOIR in amber zone, requires credit manager review"
+    },
+    {
+      "id": "R06",
+      "name": "FOIR Red Zone",
+      "description": "FOIR above 55% → reject",
+      "priority": 6,
+      "condition": "adjusted_foir >= 55",
+      "action": "reject",
+      "reason": "FOIR exceeds 55% threshold"
+    },
+    {
+      "id": "R07",
+      "name": "Chronic Illness Risk",
+      "description": "Chronic illness adds 5 points to risk score and flags for review",
+      "priority": 7,
+      "condition": "illness == true",
+      "action": "risk_flag",
+      "risk_penalty": 5,
+      "reason": "Chronic illness — verify health insurance or co-applicant income"
+    },
+    {
+      "id": "R08",
+      "name": "Informal Borrowing Flag",
+      "description": "Informal loans indicate financial stress",
+      "priority": 8,
+      "condition": "informal_loans == true",
+      "action": "risk_flag",
+      "risk_penalty": 8,
+      "reason": "Informal borrowing detected — assess true EMI obligation"
+    },
+    {
+      "id": "R09",
+      "name": "Banking Stability Check",
+      "description": "AMB should be at least 2x proposed EMI",
+      "priority": 9,
+      "condition": "amb < emi_pref * 2",
+      "action": "risk_flag",
+      "risk_penalty": 5,
+      "reason": "Low average bank balance relative to proposed EMI"
+    },
+    {
+      "id": "R10",
+      "name": "Surplus Positive Check",
+      "description": "Surplus after all obligations must be positive",
+      "priority": 10,
+      "condition": "surplus <= 0",
+      "action": "reject",
+      "reason": "No surplus after accounting for EMI and household expenses"
+    },
+    {
+      "id": "R11",
+      "name": "Business Disruption Risk",
+      "description": "Recent disruption adds to risk score",
+      "priority": 11,
+      "condition": "disruption == true",
+      "action": "risk_flag",
+      "risk_penalty": 6,
+      "reason": "Business disruption in last 12 months — assess recovery and stability"
+    },
+    {
+      "id": "R12",
+      "name": "Business Stability Score Boost",
+      "description": "High stability gives risk score benefit",
+      "priority": 12,
+      "condition": "stability == 'High'",
+      "action": "risk_bonus",
+      "risk_bonus": 10,
+      "reason": "High business stability — positive indicator"
+    },
+    {
+      "id": "R13",
+      "name": "Location Type Risk",
+      "description": "Temporary business location adds to risk",
+      "priority": 13,
+      "condition": "location_type == 'Temporary'",
+      "action": "risk_flag",
+      "risk_penalty": 5,
+      "reason": "Temporary business location — assess continuity risk"
+    },
+    {
+      "id": "R14",
+      "name": "Collateral Bonus",
+      "description": "Self-owned property gives risk score bonus",
+      "priority": 14,
+      "condition": "prop_type == 'Self'",
+      "action": "risk_bonus",
+      "risk_bonus": 8,
+      "reason": "Self-owned property improves collateral profile"
+    },
+    {
+      "id": "R15",
+      "name": "Alternate Income Comfort",
+      "description": "Alt income source reduces risk",
+      "priority": 15,
+      "condition": "alt_income == true",
+      "action": "risk_bonus",
+      "risk_bonus": 5,
+      "reason": "Alternate income source available — reduces repayment risk"
+    }
+  ],
+
+  "risk_score": {
+    "base": 50,
+    "interpretation": {
+      "70_100": "Low Risk — Strong profile",
+      "50_69":  "Medium Risk — Standard profile",
+      "30_49":  "High Risk — Needs scrutiny",
+      "0_29":   "Very High Risk — Likely reject"
+    }
+  },
+
+  "foir_thresholds": {
+    "eligible": 40,
+    "refer":    55,
+    "reject":   55
+  },
+
+  "dependent_penalty_per_head": 2,
+  "illness_foir_penalty": 3,
+  "cam_haircut": {
+    "SENP":    0.85,
+    "SEP":     0.90,
+    "Salaried": 1.00
+  }
+}
